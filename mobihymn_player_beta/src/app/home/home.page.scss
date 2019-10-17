@@ -1,16 +1,27 @@
 @import '../../theme/variables.scss';
-
 .welcome-card img {
-  max-height: 35vh;
-  overflow: hidden;
+    max-height: 35vh;
+    overflow: hidden;
 }
 
 ion-toolbar {
-  --background: transparent !important;
-  --border-width: 0;
-  --border-color: none;
+    --background: transparent !important;
+    --border-width: 0;
+    --border-color: none;
 }
 
 ion-header::after {
-  display: none;
+    display: none;
+}
+
+ion-range {
+    transform: rotate(-90deg) translateX(-70px);
+}
+
+ion-grid {
+    height: 100%
+}
+
+.tempo-key-group {
+    flex-grow: 1;
 }

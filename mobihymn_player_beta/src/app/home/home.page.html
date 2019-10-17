@@ -1,56 +1,65 @@
 <ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-menu-button></ion-menu-button>
-    </ion-buttons>
-    <ion-title>
-      Home
-    </ion-title>
-  </ion-toolbar>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-menu-button></ion-menu-button>
+        </ion-buttons>
+        <ion-title>
+            Home
+        </ion-title>
+    </ion-toolbar>
 </ion-header>
 
-<ion-content>
-  <ion-grid>
-    <ion-row>
-      <ion-col>
-        <ion-row>
-          <ion-col>
-            TEMPO
-          </ion-col>
+<ion-content color="dark">
+    <ion-grid>
+        <!--TEMPO & KEY-->
+        <ion-row class="tempo-key-group">
+            <ion-col>
+                <!--TEMPO-->
+                <ion-row>
+                    <ion-col text-center>
+                        TEMPO
+                    </ion-col>
+                </ion-row>
+                <ion-row>
+                    <ion-col text-center>
+                        80
+                    </ion-col>
+                </ion-row>
+                <ion-row>
+                    <ion-col>
+                        <ng5-slider [(value)]="tempoVal" [options]="tempoOptions"></ng5-slider>
+                    </ion-col>
+                </ion-row>
+            </ion-col>
+            <ion-col>
+                <ion-row>
+                    <ion-col text-center>
+                        KEY
+                    </ion-col>
+                </ion-row>
+                <ion-row>
+                    <ion-col text-center>
+                        G
+                    </ion-col>
+                </ion-row>
+                <ion-row>
+                    <ion-col>
+                        <ng5-slider [(value)]="keyVal" [options]="keyOptions"></ng5-slider>
+                    </ion-col>
+                </ion-row>
+            </ion-col>
         </ion-row>
+        <!--BUTTONS-->
         <ion-row>
-          <ion-col>
-            80
-          </ion-col>
-        </ion-row>
-        <ion-row>
-          <ion-col>
-            <ion-range color="warning" min="0" max="10"></ion-range>
-          </ion-col>
-        </ion-row>
-      </ion-col>
-      <ion-col>
-        <ion-row>
-          <ion-col>
-            KEY
-          </ion-col>
-        </ion-row>
-        <ion-row>
-          <ion-col>
-            G
-          </ion-col>
-        </ion-row>
-        <ion-row>
-          <ion-col>
-            <ion-range color="warning" min="0" max="10"></ion-range>
-          </ion-col>
-        </ion-row>
-      </ion-col>
-    </ion-row>
-    <ion-row>
-      <ion-col>
+            <ion-col>
 
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+            </ion-col>
+        </ion-row>
+        <!--TRACK-->
+        <ion-row>
+            <ion-col>
+
+            </ion-col>
+        </ion-row>
+    </ion-grid>
 </ion-content>
