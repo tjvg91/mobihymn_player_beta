@@ -1,11 +1,16 @@
 <ion-header>
-    <ion-toolbar>
+    <ion-toolbar color="dark">
         <ion-buttons slot="start">
             <ion-menu-button></ion-menu-button>
         </ion-buttons>
         <ion-title>
             Home
         </ion-title>
+        <ion-buttons slot="end">
+            <ion-button routerLink="/list">
+                <ion-icon name="list"></ion-icon>
+            </ion-button>
+        </ion-buttons>
     </ion-toolbar>
 </ion-header>
 
@@ -22,11 +27,11 @@
                 </ion-row>
                 <ion-row>
                     <ion-col text-center>
-                        80
+                        <span class="value-label">{{tempoVal}}</span>
                     </ion-col>
                 </ion-row>
-                <ion-row>
-                    <ion-col>
+                <ion-row class="slider-row">
+                    <ion-col class="slider-col" justify-content-center>
                         <ng5-slider [(value)]="tempoVal" [options]="tempoOptions"></ng5-slider>
                     </ion-col>
                 </ion-row>
@@ -39,26 +44,68 @@
                 </ion-row>
                 <ion-row>
                     <ion-col text-center>
-                        G
+                        <span class="value-label">{{keys[keyVal]}}</span>
                     </ion-col>
                 </ion-row>
-                <ion-row>
-                    <ion-col>
+                <ion-row class="slider-row">
+                    <ion-col class="slider-col" justify-content-center>
                         <ng5-slider [(value)]="keyVal" [options]="keyOptions"></ng5-slider>
                     </ion-col>
                 </ion-row>
             </ion-col>
         </ion-row>
+        <ion-row class="empty-space"></ion-row>
         <!--BUTTONS-->
-        <ion-row>
-            <ion-col>
-
+        <ion-row class="voice-groups-container">
+            <ion-col text-left offset="1">
+                <span>VOICE GROUPS</span>
             </ion-col>
         </ion-row>
-        <!--TRACK-->
         <ion-row>
-            <ion-col>
-
+            <ion-col *ngFor="let voice of voices; index as i" class="ion-no-padding" size="2"
+                [attr.offset]="i == 0 ? 3 : null">
+                <ion-button color="warning" expand="full" style="text-transform: uppercase;">
+                    Gr. {{ i + 1}}
+                </ion-button>
+            </ion-col>
+        </ion-row>
+        <ion-row class="empty-space"></ion-row>
+        <!--PLAYER-->
+        <ion-row class="player-container">
+            <ion-col size="2" align-items-center justify-content-end style="display: flex;">
+                <p class="ion-no-margin">
+                    {{ (playerVal / 60).toFixed(0) + ':' + (playerVal % 60).toFixed(0) }}
+                </p>
+            </ion-col>
+            <ion-col size="8">
+                <ng5-slider [(value)]="playerVal" [options]="playerOptions" class="player-slider"></ng5-slider>
+            </ion-col>
+            <ion-col size="2" align-items-center style="display: flex;" justify-content-start>
+                <p class="ion-no-margin">3:30</p>
+            </ion-col>
+        </ion-row>
+        <!--PLAYER CONTROLS-->
+        <ion-row class="player-controls-container">
+            <ion-col size="2" offset="2" text-center justify-content-center>
+                <ion-fab>
+                    <ion-fab-button size="small">
+                        <ion-icon name="square"></ion-icon>
+                    </ion-fab-button>
+                </ion-fab>
+            </ion-col>
+            <ion-col size="4" text-center justify-content-center>
+                <ion-fab>
+                    <ion-fab-button>
+                        <ion-icon name="play"></ion-icon>
+                    </ion-fab-button>
+                </ion-fab>
+            </ion-col>
+            <ion-col size="2" text-center justify-content-center>
+                <ion-fab>
+                    <ion-fab-button size="small">
+                        <ion-icon name="repeat"></ion-icon>
+                    </ion-fab-button>
+                </ion-fab>
             </ion-col>
         </ion-row>
     </ion-grid>

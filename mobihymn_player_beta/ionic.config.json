@@ -1,5 +1,7 @@
 {
   "name": "mobihymn_player_beta",
-  "integrations": {},
+  "integrations": {
+    "cordova": {}
+  },
   "type": "angular"
 }
