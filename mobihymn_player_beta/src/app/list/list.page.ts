@@ -1,39 +1,53 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
+import { MIDIButtons } from 'src/store/models/midiInput';
 
 @Component({
   selector: 'app-list',
   templateUrl: 'list.page.html',
   styleUrls: ['list.page.scss']
 })
-export class ListPage implements OnInit {
-  private selectedItem: any;
-  private icons = [
-    'flask',
-    'wifi',
-    'beer',
-    'football',
-    'basketball',
-    'paper-plane',
-    'american-football',
-    'boat',
-    'bluetooth',
-    'build'
-  ];
-  public items: Array<{ title: string; note: string; icon: string }> = [];
-  constructor() {
-    for (let i = 1; i < 11; i++) {
-      this.items.push({
-        title: 'Item ' + i,
-        note: 'This is item #' + i,
-        icon: this.icons[Math.floor(Math.random() * this.icons.length)]
-      });
-    }
+export class ListPage {
+  buttons = MIDIButtons;
+  inputReset = true;
+  midiVal = '1';
+
+  constructor() {}
+
+  ionViewDidEnter() {
+    const routerOutlet = document.querySelector('ion-router-outlet');
+
+    const thisContent = routerOutlet.querySelector('app-list ion-content');
+    thisContent.shadowRoot.querySelector('main')
+                    .setAttribute('style', 'display:flex; justify-content: center; flex-direction: column');
   }
 
-  ngOnInit() {
+  buttonClick(btnVal: string|number) {
+    if (!(/[fst]$/.test(this.midiVal) && /f|s|t/.test(btnVal + ''))) {
+      if (this.inputReset) {
+        if (/\d/.test(btnVal + '')) {
+          if (btnVal !== 0) {
+            this.midiVal = btnVal + '';
+            this.inputReset = false;
+          }
+        }
+      } else {
+        if (/[0-9fst]/.test(btnVal + '')) {
+          this.midiVal += btnVal + '';
+        } else {
+          switch (btnVal) {
+            case '<':
+              if (this.midiVal.length === 1) {
+                this.inputReset = true;
+                this.midiVal = '1';
+              } else {
+                this.midiVal = this.midiVal.substr(0, this.midiVal.length - 1);
+              }
+              break;
+            default:
+              break;
+          }
+        }
+      }
+    }
   }
-  // add back when alpha.4 is out
-  // navigate(item) {
-  //   this.router.navigate(['/list', JSON.stringify(item)]);
-  // }
 }

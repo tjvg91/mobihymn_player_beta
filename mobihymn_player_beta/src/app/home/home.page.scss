@@ -1,5 +1,4 @@
 @import '../../theme/variables.scss';
-
 .welcome-card img {
     max-height: 35vh;
     overflow: hidden;
@@ -37,13 +36,10 @@ ion-grid {
 //.empty-space {
 //    flex-grow: 2;
 //}
-
 .tempo-key-group {
     flex-grow: 1;
-
     .slider-row {
         height: calc(100% - 56px);
-
         .slider-col {
             height: 100%;
             display: flex;
@@ -62,11 +58,9 @@ ion-grid {
 .player-controls-container {
     margin-top: 40px;
     display: flex;
-
     ion-col {
         display: flex;
     }
-
     ion-fab-button {
         --background: none;
         --border-color: white;

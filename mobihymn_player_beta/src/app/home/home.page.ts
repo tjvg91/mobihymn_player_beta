@@ -14,11 +14,11 @@ export class HomePage {
   tempoOptions: Options;
   keyOptions: Options;
   playerOptions: Options;
-  keys: string[];
+  keys: any[];
   voices: any[];
 
   constructor() {
-    this.keys = keyJson.default;
+    this.keys = keyJson['default'];
     this.tempoOptions = {
       floor: 60,
       ceil: 120,

@@ -1,1 +1,32 @@
+$width: 200px;
+.button-container {
+    display: flex;
+    height: 75px;
+    ion-fab-button {
+        --background: none;
+        --border-color: var(--ion-color-warning);
+        --border-style: solid;
+        --border-width: 2px;
+        --color: var(--ion-color-warning);
+        --box-shadow: none !important;
+        --background-activated: var(--ion-color-warning-contrast);
+        --color-activated: var(--ion-color-warning);
+        font-size: 18px;
+    }
+}
 
+ion-grid {
+    padding: 0 calc((100% - #{$width}) / 2);
+    margin: 0;
+}
+
+.input-container {
+    padding: 0 calc((100% - #{$width}) / 2);
+    margin: 0 0 10px;
+}
+
+ion-input {
+    font-size: 22px;
+    text-align: center;
+    border-bottom: 1px solid var(--ion-color-warning-tint);
+}
