@@ -6,14 +6,9 @@ import { Setting } from './setting.model';
 
 @Injectable({ providedIn: 'root' })
 export class SettingsService {
+  constructor(private settingsStore: SettingsStore, private http: HttpClient) {}
 
-  constructor(private settingsStore: SettingsStore,
-              private http: HttpClient) {
-  }
-
-  get() {
-    this.http.get('https://akita.com').subscribe((entities) => this.settingsStore.set(entities));
-  }
+  get() {}
 
   add(setting: Setting) {
     this.settingsStore.add(setting);

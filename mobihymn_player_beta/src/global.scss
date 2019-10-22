@@ -29,6 +29,7 @@
 @import "~@ionic/angular/css/text-transformation.css";
 @import "~@ionic/angular/css/flex-utils.css";
 $ionColorWarning: #ffeb3b;
+
 app-home {
     width: 100% !important;
 }
@@ -41,16 +42,23 @@ ng5-slider {
     .ng5-slider-pointer {
         background-color: $ionColorWarning !important;
         outline: none;
+
         &::after {
             display: none;
         }
     }
+
     &.player-slider {
         .ng5-slider-pointer {
             top: -23px;
         }
+
         .ng5-slider-bar-wrapper {
             padding-top: 6px !important;
         }
     }
+}
+
+ion-header::after {
+    display: none;
 }

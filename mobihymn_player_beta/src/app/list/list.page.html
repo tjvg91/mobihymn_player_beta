@@ -1,7 +1,6 @@
 <ion-header>
     <ion-toolbar color="dark">
         <ion-buttons slot="start">
-            <ion-menu-button></ion-menu-button>
             <ion-back-button></ion-back-button>
         </ion-buttons>
     </ion-toolbar>
@@ -14,7 +13,8 @@
     <div class="buttons-container">
         <ion-grid>
             <ion-row>
-                <ion-col size="4" *ngFor="let btn of buttons" class="button-container ion-justify-content-center ion-align-items-center">
+                <ion-col size="4" *ngFor="let btn of buttons"
+                    class="button-container ion-justify-content-center ion-align-items-center">
                     <ion-fab>
                         <ion-fab-button (click)="buttonClick(btn.value)" fill="outline">{{ btn.text }}</ion-fab-button>
                     </ion-fab>

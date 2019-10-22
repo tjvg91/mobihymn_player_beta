@@ -4,6 +4,7 @@ import { Platform } from '@ionic/angular';
 import { SplashScreen } from '@ionic-native/splash-screen/ngx';
 import { StatusBar } from '@ionic-native/status-bar/ngx';
 import { SoundfontService } from 'src/store/soundfont/soundfont.service';
+import { HymnMidiService } from 'src/store/hymn-midi/hymn-midi.service';
 
 @Component({
   selector: 'app-root',
@@ -28,7 +29,8 @@ export class AppComponent {
     private platform: Platform,
     private splashScreen: SplashScreen,
     private statusBar: StatusBar,
-    private soundfontService: SoundfontService
+    private soundfontService: SoundfontService,
+    private hymnMidiService: HymnMidiService
   ) {
     this.initializeApp();
   }
@@ -47,5 +49,6 @@ export class AppComponent {
 
   initializeSoundfonts() {
     this.soundfontService.set();
+    this.hymnMidiService.get();
   }
 }

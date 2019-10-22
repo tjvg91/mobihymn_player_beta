@@ -8,7 +8,7 @@
         </ion-title>
         <ion-buttons slot="end">
             <ion-button routerLink="/list">
-                <ion-icon name="list"></ion-icon>
+                <ion-icon name="grid"></ion-icon>
             </ion-button>
         </ion-buttons>
     </ion-toolbar>
@@ -57,12 +57,13 @@
         <ion-row class="empty-space"></ion-row>
         <!--BUTTONS-->
         <ion-row class="voice-groups-container">
-            <ion-col text-left offset="1">
+            <ion-col class="ion-text-left" offset="1">
                 <span>VOICE GROUPS</span>
             </ion-col>
         </ion-row>
         <ion-row>
-            <ion-col *ngFor="let voice of voices; index as i" class="ion-no-padding" size="2" [attr.offset]="i == 0 ? 3 : null">
+            <ion-col *ngFor="let voice of voices; index as i" class="ion-no-padding" size="2"
+                [attr.offset]="i == 0 ? 3 : null">
                 <ion-button color="warning" expand="full" style="text-transform: uppercase;">
                     Gr. {{ i + 1}}
                 </ion-button>
@@ -87,21 +88,21 @@
         <ion-row class="player-controls-container">
             <ion-col size="2" offset="2" class="ion-text-center ion-justify-content-center">
                 <ion-fab>
-                    <ion-fab-button size="small">
+                    <ion-fab-button size="small" [disabled]="!mdiPlayer">
                         <ion-icon name="square"></ion-icon>
                     </ion-fab-button>
                 </ion-fab>
             </ion-col>
             <ion-col size="4" class="ion-text-center ion-justify-content-center">
                 <ion-fab>
-                    <ion-fab-button>
-                        <ion-icon name="play"></ion-icon>
+                    <ion-fab-button [disabled]="!mdiPlayer">
+                        <ion-icon [name]="mdiPlayer && mdiPlayer.isPlaying ? 'pause' : 'play'"></ion-icon>
                     </ion-fab-button>
                 </ion-fab>
             </ion-col>
             <ion-col size="2" class="ion-text-center ion-justify-content-center">
                 <ion-fab>
-                    <ion-fab-button size="small">
+                    <ion-fab-button size="small" [disabled]="!mdiPlayer" [ngClass]="{'fill': repeat}" class="repeater">
                         <ion-icon name="repeat"></ion-icon>
                     </ion-fab-button>
                 </ion-fab>

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { MIDIButtons } from 'src/store/models/midiInput';
+import MIDIButtons from '../../assets/midi-buttons.json';
 
 @Component({
   selector: 'app-list',
@@ -17,11 +17,12 @@ export class ListPage {
     const routerOutlet = document.querySelector('ion-router-outlet');
 
     const thisContent = routerOutlet.querySelector('app-list ion-content');
-    thisContent.shadowRoot.querySelector('main')
-                    .setAttribute('style', 'display:flex; justify-content: center; flex-direction: column');
+    thisContent.shadowRoot
+      .querySelector('main')
+      .setAttribute('style', 'display:flex; justify-content: center; flex-direction: column');
   }
 
-  buttonClick(btnVal: string|number) {
+  buttonClick(btnVal: string | number) {
     if (!(/[fst]$/.test(this.midiVal) && /f|s|t/.test(btnVal + ''))) {
       if (this.inputReset) {
         if (/\d/.test(btnVal + '')) {

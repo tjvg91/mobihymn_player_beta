@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Store, StoreConfig } from '@datorama/akita';
-import * as Soundfont from 'soundfont-player';
+import * as WebAudioFont from 'webaudiofont';
 
 export interface SoundfontState {
-  soundfont: Soundfont.Player;
+  webAudioFont: WebAudioFont;
 }
 
 export function createInitialState(): SoundfontState {
   return {
-    soundfont: null
+    webAudioFont: null
   };
 }
 
