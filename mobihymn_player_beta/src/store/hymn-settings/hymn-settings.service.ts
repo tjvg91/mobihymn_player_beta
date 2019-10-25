@@ -4,9 +4,5 @@ import { HymnSettingsStore } from './hymn-settings.store';
 
 @Injectable({ providedIn: 'root' })
 export class HymnSettingsService {
-
-  constructor(private hymnSettingsStore: HymnSettingsStore,
-              private http: HttpClient) {
-  }
-
+  constructor(private hymnSettingsStore: HymnSettingsStore, private http: HttpClient) {}
 }

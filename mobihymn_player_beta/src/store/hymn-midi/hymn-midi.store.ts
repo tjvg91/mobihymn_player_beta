@@ -7,10 +7,7 @@ export interface HymnMidiState extends EntityState<HymnMidi> {}
 @Injectable({ providedIn: 'root' })
 @StoreConfig({ name: 'hymn-midi' })
 export class HymnMidiStore extends EntityStore<HymnMidiState, HymnMidi> {
-
   constructor() {
     super();
   }
-
 }
-

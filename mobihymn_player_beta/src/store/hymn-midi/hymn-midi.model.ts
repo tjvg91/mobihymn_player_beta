@@ -2,7 +2,9 @@ import { ID } from '@datorama/akita';
 
 export interface HymnMidi {
   id: ID;
-  name: string;
+  number: string;
+  title: string;
+  midi: string;
 }
 
 /**

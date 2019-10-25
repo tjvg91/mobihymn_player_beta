@@ -1,78 +1,127 @@
 import { File } from '@ionic-native/file/ngx';
 import { Platform } from '@ionic/angular';
-import {
-  HttpClient,
-  HttpHeaders,
-  HttpSentEvent,
-  HttpProgressEvent,
-  HttpUserEvent,
-  HttpEvent
-} from '@angular/common/http';
-import { HTTP, HTTPResponse } from '@ionic-native/http/ngx';
-import { from, Observable } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HTTP } from '@ionic-native/http/ngx';
 
 export class API {
-  ASSETS = (this.platform.is('cordova') ? this.file.applicationDirectory : '') + 'assets';
+  ASSETS = (this.platform.is('cordova') ? this.inFile.applicationDirectory : '') + 'assets';
 
-  private isCordova = this.platform.is('cordova');
+  public isCordova = this.platform.is('cordova');
 
   public storage = this.platform.is('android')
-    ? this.file.externalDataDirectory
+    ? this.inFile.externalDataDirectory
     : this.platform.is('ios')
-    ? this.file.documentsDirectory
+    ? this.inFile.documentsDirectory
     : this.ASSETS;
   public soundfont = this.ASSETS + '/soundfonts/0043_GeneralUserGS_sf2_file.js';
-  public midiFiles = this.storage + '/assets';
 
   public http = this.isCordova ? this.ionicHttp : this.httpClient;
+  public file = this.inFile;
 
   constructor(
-    private file: File,
+    private inFile: File,
     private platform: Platform,
     private httpClient: HttpClient,
     private ionicHttp: HTTP
   ) {}
 
-  publc;
-  httpCall(
+  public httpCall<T>(
     method: 'GET' | 'POST' | 'DELETE' | 'PUT' | 'PATCH',
     url: string,
+    successCallback: (arg0: T) => any,
+    errorCallback?: (arg0: any) => any,
     body?: any,
     headers?: HttpHeaders | { [header: string]: string | string[] }
-  ): Observable<
-    ArrayBuffer | HTTPResponse | HttpSentEvent | HttpUserEvent<object> | HttpProgressEvent
-  > {
+  ): void {
+    const newUrl = this.platform.is('cordova')
+      ? url
+      : url.replace(/https:\/\/firebasestorage\.googleapis\.com/, '/firebaseapi');
+    console.log(url);
+    console.log(newUrl);
     switch (method) {
       case 'GET':
-        return this.isCordova
-          ? from(this.http.get(url, null, headers))
-          : ((this.http as HttpClient).get(url, {
+        if (this.isCordova) {
+          this.ionicHttp
+            .get(newUrl, null, headers)
+            .then<void, never>(resp => {
+              successCallback(resp.data);
+            })
+            .catch(error => {
+              if (errorCallback) {
+                errorCallback(error);
+              }
+            });
+        } else {
+          this.httpClient
+            .get<T>(newUrl, {
               headers
-            }) as Observable<ArrayBuffer>);
+            })
+            .subscribe(
+              val => {
+                successCallback(val);
+              },
+              error => {
+                if (errorCallback) {
+                  errorCallback(error);
+                }
+              }
+            );
+        }
+        break;
       case 'POST':
-        return this.isCordova
-          ? from(
-              this.http.post(url, body, {
-                observe: 'events',
-                headers
-              })
-            )
-          : ((this.http as HttpClient).post(url, body, {
-              observe: 'events',
+        if (this.isCordova) {
+          this.ionicHttp
+            .post(newUrl, body, headers)
+            .then(resp => {
+              successCallback(resp.data);
+            })
+            .catch(error => {
+              if (errorCallback) {
+                errorCallback(error);
+              }
+            });
+        } else {
+          this.httpClient
+            .post<T>(newUrl, body, {
               headers
-            }) as Observable<ArrayBuffer | HttpEvent<object>>);
+            })
+            .subscribe(
+              val => {
+                successCallback(val);
+              },
+              error => {
+                if (errorCallback) {
+                  errorCallback(error);
+                }
+              }
+            );
+        }
+        break;
       case 'PUT':
-        return this.isCordova
-          ? from(
-              this.http.put(url, body, {
-                observe: 'events',
-                headers
-              })
-            )
-          : ((this.http as HttpClient).post(url, body, {
-              observe: 'events',
+        if (this.isCordova) {
+          this.ionicHttp
+            .put(newUrl, body, headers)
+            .then(resp => {
+              successCallback(resp.data);
+            })
+            .catch(error => {
+              errorCallback(error);
+            });
+        } else {
+          this.httpClient
+            .put<T>(newUrl, body, {
               headers
-            }) as Observable<ArrayBuffer | HttpEvent<object>>);
+            })
+            .subscribe(
+              val => {
+                successCallback(val);
+              },
+              error => {
+                errorCallback(error);
+              }
+            );
+        }
+        break;
     }
   }
 }

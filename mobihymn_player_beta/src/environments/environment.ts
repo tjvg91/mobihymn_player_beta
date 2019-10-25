@@ -3,7 +3,15 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  firebase: {
+    apiKey: 'AIzaSyBgPT51lOzkH0Lwb63r0s4iQoyKgn2VuSY',
+    authDomain: 'mobihymn.firebaseapp.com',
+    databaseURL: 'https://mobihymn.firebaseio.com',
+    projectId: 'mobihymn',
+    storageBucket: 'mobihymn.appspot.com',
+    messagingSenderId: '525477034225'
+  }
 };
 
 /*

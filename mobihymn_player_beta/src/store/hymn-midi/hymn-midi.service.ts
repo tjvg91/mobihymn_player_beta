@@ -10,19 +10,6 @@ import { map, catchError } from 'rxjs/operators';
 export class HymnMidiService {
   constructor(private hymnMidiStore: HymnMidiStore, private http: HttpClient, private api: API) {}
 
-  get() {
-    this.api.httpCall('GET', '/', null, null).pipe(
-      map(resp => {
-        console.log(resp);
-        return resp;
-      }),
-      catchError(error => {
-        console.log(error);
-        return error;
-      })
-    );
-  }
-
   add(hymnMidi: HymnMidi) {
     this.hymnMidiStore.add(hymnMidi);
   }

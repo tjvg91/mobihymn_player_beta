@@ -68,7 +68,8 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "app:build"
+            "browserTarget": "app:build",
+            "proxyConfig": "proxy.config.json"
           },
           "configurations": {
             "production": {
@@ -175,5 +176,8 @@
     "@ionic/angular-toolkit:page": {
       "styleext": "scss"
     }
+  },
+  "cli": {
+    "defaultCollection": "@ionic/angular-toolkit"
   }
 }

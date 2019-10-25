@@ -1,0 +1,8 @@
+{
+    "/firebaseapi": {
+        "target": "https://firebasestorage.googleapis.com",
+        "changeOrigin": true,
+        "secure": false,
+        "logLevel": "debug"
+    }
+}
