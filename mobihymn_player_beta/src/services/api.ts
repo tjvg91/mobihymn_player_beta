@@ -1,7 +1,12 @@
-import { File } from '@ionic-native/file/ngx';
-import { Platform } from '@ionic/angular';
+import * as Firebase from 'firebase';
+import * as WebAudioFont from 'webaudiofont';
+
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { File } from '@ionic-native/file/ngx';
 import { HTTP } from '@ionic-native/http/ngx';
+import { Platform } from '@ionic/angular';
+
+import { environment } from '../environments/environment';
 
 export class API {
   ASSETS = (this.platform.is('cordova') ? this.inFile.applicationDirectory : '') + 'assets';
@@ -17,6 +22,9 @@ export class API {
 
   public http = this.isCordova ? this.ionicHttp : this.httpClient;
   public file = this.inFile;
+
+  public firebaseAuth: Firebase.auth.Auth;
+  public isSignedIn = false;
 
   constructor(
     private inFile: File,
@@ -123,5 +131,28 @@ export class API {
         }
         break;
     }
+  }
+
+  public signInToFirebaseAuth() {
+    const app = Firebase.initializeApp(environment.firebase.config);
+    const auth = Firebase.auth(app);
+    auth
+      .signInWithEmailAndPassword(environment.firebase.email, environment.firebase.password)
+      .catch(error => alert(error))
+      .then(() => {
+        this.isSignedIn = true;
+      });
+    this.firebaseAuth = auth;
+  }
+
+  public setSoundfont() {
+    /* WebAudioFont.instrument(this.ac, 'assets/soundfonts/acoustic_grand_piano-mp3.js').then(instru => {
+      this.soundfontStore.update({
+        soundfont: instru
+      });
+    }); */
+    const player = new WebAudioFont();
+    player.loader.startLoad(new AudioContext(), this.soundfont, 'acoustic_piano');
+    return player;
   }
 }

@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
 import MIDIButtons from '../../assets/midi-buttons.json';
 import { Router } from '@angular/router';
-import { AppSettingsStore } from 'src/store/app-settings/app-settings.store.js';
-import { HymnMidiQuery } from 'src/store/hymn-midi/hymn-midi.query.js';
-import { HymnMidi } from 'src/store/hymn-midi/hymn-midi.model.js';
+import { HymnMidiQuery } from '../../store/hymn-midi/hymn-midi.query';
+import { HymnMidi } from '../../store/hymn-midi/hymn-midi.model';
+import { HymnMidiStore } from '../../store/hymn-midi/hymn-midi.store';
 import { map } from 'rxjs/operators';
 
 @Component({
@@ -18,8 +18,8 @@ export class ListPage {
 
   constructor(
     private router: Router,
-    private appSettingsStore: AppSettingsStore,
-    private hymnMidiQuery: HymnMidiQuery
+    private hymnMidiQuery: HymnMidiQuery,
+    private hymnMidiStore: HymnMidiStore
   ) {}
 
   ionViewDidEnter() {
@@ -58,9 +58,7 @@ export class ListPage {
                 .selectEntity((midi: HymnMidi) => midi.number === this.midiVal)
                 .pipe(
                   map(midi => {
-                    this.appSettingsStore.update({
-                      activeHymnId: midi.id
-                    });
+                    this.hymnMidiStore.setActive(midi.id);
                     this.router.navigate(['/home']);
                   })
                 );

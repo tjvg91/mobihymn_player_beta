@@ -1,9 +1,7 @@
 import * as Firebase from 'firebase';
 import { API } from 'src/services/api';
-import { AppSettingsService } from 'src/store/app-settings/app-settings.service';
 import { HymnMidi } from 'src/store/hymn-midi/hymn-midi.model';
 import { HymnMidiService } from 'src/store/hymn-midi/hymn-midi.service';
-import { SoundfontService } from 'src/store/soundfont/soundfont.service';
 
 import { Component } from '@angular/core';
 import { SplashScreen } from '@ionic-native/splash-screen/ngx';
@@ -37,9 +35,7 @@ export class AppComponent {
     private platform: Platform,
     private splashScreen: SplashScreen,
     private statusBar: StatusBar,
-    private soundfontService: SoundfontService,
     private hymnMidiService: HymnMidiService,
-    private appSettingsService: AppSettingsService,
     private fileTransfer: FileTransfer,
     private api: API
   ) {
@@ -51,15 +47,9 @@ export class AppComponent {
       this.platform.ready().then(() => {
         this.statusBar.styleDefault();
         this.splashScreen.hide();
-        this.initializeSoundfonts();
       });
     } else {
-      this.initializeSoundfonts();
     }
-  }
-
-  initializeSoundfonts() {
-    this.soundfontService.set();
   }
 
   checkHymnalFile() {
@@ -76,7 +66,7 @@ export class AppComponent {
   }
 
   downloadFromFirebase() {
-    this.appSettingsService.getFirebaseAuth().onAuthStateChanged(user => {
+    this.api.firebaseAuth.onAuthStateChanged(() => {
       const storage = Firebase.storage().ref();
       storage
         .child('hymnal.json')

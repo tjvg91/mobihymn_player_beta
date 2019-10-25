@@ -1,7 +1,6 @@
 import * as Firebase from 'firebase';
 import * as MIDI from 'midi-player-js';
 import { LabelType, Options } from 'ng5-slider';
-import { map } from 'rxjs/operators';
 import * as Webfont from 'webaudiofont';
 
 import { Component } from '@angular/core';
@@ -11,15 +10,12 @@ import { AlertController } from '@ionic/angular';
 
 import keyJson from '../../assets/keys.json';
 import { API } from '../../services/api';
-import { AppSettingsStore } from '../../store/app-settings/app-settings.store';
-import { AppSettingsQuery } from '../../store/app-settings/app-settings.query';
-import { AppSettingsService } from '../../store/app-settings/app-settings.service';
 import { HymnMidi } from '../../store/hymn-midi/hymn-midi.model';
 import { HymnMidiService } from '../../store/hymn-midi/hymn-midi.service';
 import { HymnMidiQuery } from '../../store/hymn-midi/hymn-midi.query';
-import { HymnSettingsQuery } from '../../store/hymn-settings/hymn-settings.query';
-import { HymnSettingsStore } from '../../store/hymn-settings/hymn-settings.store';
-import { SoundfontQuery } from '../../store/soundfont/soundfont.query';
+import { HymnSettingQuery } from '../../store/hymn-setting/hymn-setting.query';
+import { HymnSettingStore } from '../../store/hymn-setting/hymn-setting.store';
+import { HymnMidiStore } from '../../store/hymn-midi/hymn-midi.store.js';
 
 @Component({ selector: 'app-home', templateUrl: 'home.page.html', styleUrls: ['home.page.scss'] })
 export class HomePage {
@@ -45,17 +41,14 @@ export class HomePage {
   HYMNAL_DIR = this.api.storage + '/mobihymn_player_beta';
 
   constructor(
-    private soundfontQuery: SoundfontQuery,
     private network: Network,
     private fileTransfer: FileTransfer,
     private api: API,
     private hymnMidiService: HymnMidiService,
+    private hymnMidiStore: HymnMidiStore,
     private hymnMidiQuery: HymnMidiQuery,
-    private hymnSettingStore: HymnSettingsStore,
-    private hymnSettingQuery: HymnSettingsQuery,
-    private appSettingsStore: AppSettingsStore,
-    private appSettingsService: AppSettingsService,
-    private appSettingsQuery: AppSettingsQuery
+    private hymnSettingStore: HymnSettingStore,
+    private hymnSettingQuery: HymnSettingQuery
   ) {
     const hm = this;
     this.ac = new AudioContext();
@@ -87,20 +80,11 @@ export class HomePage {
         return (value / 60).toFixed(0) + ':' + (value % 60).toFixed(0);
       }
     };
-    this.soundfontQuery
-      .select(state => state.webAudioFont)
-      .pipe(
-        map(webAudioFont => {
-          if (webAudioFont) {
-            hm.webfont = webAudioFont;
-            this.setupMidiPlayer();
-          }
-        })
-      )
-      .subscribe();
 
     this.network.onConnect().subscribe(() => {
-      this.appSettingsService.getFirebaseAuth();
+      if (!this.api.isSignedIn) {
+        this.api.signInToFirebaseAuth();
+      }
       if (this.alert) {
         this.alert.dismiss();
       }
@@ -120,19 +104,20 @@ export class HomePage {
         }
       });
 
-    this.appSettingsQuery
-      .select(state => state.activeHymnId)
-      .subscribe(hymnId => {
-        if (hymnId) {
-          this.hymnMidiQuery.selectEntity(hymnId).subscribe(hymnMidi => {
-            if (hymnMidi) {
-              this.mdiPlayer.loadDataUri(hymnMidi.midi);
-              this.tempoVal = this.mdiPlayer.tempo;
-              this.title = hymnMidi.title;
-            }
-          });
-        }
-      });
+    this.hymnMidiQuery.selectActiveId().subscribe(hymnId => {
+      if (hymnId) {
+        this.hymnMidiQuery.selectEntity(hymnId).subscribe(hymnMidi => {
+          if (hymnMidi) {
+            this.mdiPlayer.loadDataUri(hymnMidi.midi);
+            this.tempoVal = this.mdiPlayer.tempo;
+            this.title = hymnMidi.title;
+          }
+        });
+      }
+    });
+
+    this.webfont = this.api.setSoundfont();
+    this.setupMidiPlayer();
   }
 
   ionViewDidEnter() {
@@ -180,7 +165,7 @@ export class HomePage {
   }
 
   downloadFromFirebase() {
-    this.appSettingsService.getFirebaseAuth().onAuthStateChanged(user => {
+    this.api.firebaseAuth.onAuthStateChanged(user => {
       const storage = Firebase.storage().ref();
       storage
         .child('hymnal.json')
@@ -201,9 +186,8 @@ export class HomePage {
       const data = JSON.parse(val) as HymnMidi[];
       data.forEach(datum => {
         hm.hymnMidiService.add(datum);
-        hm.appSettingsStore.update({
-          activeHymnId: 1
-        });
+        hm.hymnMidiStore.setActive(1);
+        hm.hymnSettingStore.setActive(1);
       });
     });
   }

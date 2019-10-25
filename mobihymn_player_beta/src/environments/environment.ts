@@ -5,12 +5,16 @@
 export const environment = {
   production: false,
   firebase: {
-    apiKey: 'AIzaSyBgPT51lOzkH0Lwb63r0s4iQoyKgn2VuSY',
-    authDomain: 'mobihymn.firebaseapp.com',
-    databaseURL: 'https://mobihymn.firebaseio.com',
-    projectId: 'mobihymn',
-    storageBucket: 'mobihymn.appspot.com',
-    messagingSenderId: '525477034225'
+    config: {
+      apiKey: 'AIzaSyBgPT51lOzkH0Lwb63r0s4iQoyKgn2VuSY',
+      authDomain: 'mobihymn.firebaseapp.com',
+      databaseURL: 'https://mobihymn.firebaseio.com',
+      projectId: 'mobihymn',
+      storageBucket: 'mobihymn.appspot.com',
+      messagingSenderId: '525477034225'
+    },
+    email: 'tim.gandionco@gmail.com',
+    password: 'Tjvg1991'
   }
 };
 
