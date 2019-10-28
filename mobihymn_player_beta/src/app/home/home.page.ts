@@ -6,7 +6,7 @@ import * as Webfont from 'webaudiofont';
 import { Component } from '@angular/core';
 import { FileTransfer } from '@ionic-native/file-transfer/ngx';
 import { Network } from '@ionic-native/network/ngx';
-import { AlertController } from '@ionic/angular';
+import { AlertController, LoadingController } from '@ionic/angular';
 
 import keyJson from '../../assets/keys.json';
 import { API } from '../../services/api';
@@ -34,7 +34,6 @@ export class HomePage {
   repeat = false;
   isConnected = false;
 
-  alertCtrl: AlertController;
   alert: HTMLIonAlertElement;
 
   HYMNAL_JSON = 'hymnal.json';
@@ -48,7 +47,9 @@ export class HomePage {
     private hymnMidiStore: HymnMidiStore,
     private hymnMidiQuery: HymnMidiQuery,
     private hymnSettingStore: HymnSettingStore,
-    private hymnSettingQuery: HymnSettingQuery
+    private hymnSettingQuery: HymnSettingQuery,
+    private alertCtrl: AlertController,
+    private loadCtrl: LoadingController
   ) {
     const hm = this;
     this.ac = new AudioContext();
@@ -82,6 +83,7 @@ export class HomePage {
     };
 
     this.network.onConnect().subscribe(() => {
+      this.isConnected = true;
       if (!this.api.isSignedIn) {
         this.api.signInToFirebaseAuth();
       }
@@ -90,19 +92,9 @@ export class HomePage {
       }
     });
 
-    this.alertCtrl
-      .create({
-        message:
-          'A file is missing in your device and needs to be downloaded. Internet connection is needed.',
-        backdropDismiss: false,
-        keyboardClose: false
-      })
-      .then(alert => {
-        this.alert = alert;
-        if (!this.isConnected) {
-          this.alert.present();
-        }
-      });
+    this.isConnected = this.network.type !== this.network.Connection.NONE;
+
+    this.checkHymnalFile();
 
     this.hymnMidiQuery.selectActiveId().subscribe(hymnId => {
       if (hymnId) {
@@ -128,8 +120,29 @@ export class HomePage {
     this.api.file
       .checkFile(this.HYMNAL_DIR, this.HYMNAL_JSON)
       .then(exists => {
+        alert('exists: ' + exists);
         if (!exists) {
-          this.downloadFromFirebase();
+          if (!this.isConnected) {
+            this.alertCtrl
+              .create({
+                message:
+                  'A file is missing in your device and needs internet connection to be downloaded. Connect to the internet.',
+                backdropDismiss: false,
+                keyboardClose: false
+              })
+              .then(alert => {
+                this.alert = alert;
+                if (!this.isConnected) {
+                  this.alert.present();
+                }
+              });
+          } else {
+            if (!this.api.isSignedIn) {
+              this.api.signInToFirebaseAuth();
+            }
+          }
+        } else {
+          this.downloadSuccess(this.HYMNAL_DIR, this.HYMNAL_JSON);
         }
       })
       .catch(err => {
@@ -144,7 +157,7 @@ export class HomePage {
   setupMidiPlayer() {
     this.webfont = new Webfont.WebAudioFontPlayer();
     this.mdiPlayer = new MIDI.Player(event => {
-      console.log(event);
+      console.log(Object.keys(event));
       if (event.name && event.name === 'Note on') {
         try {
           this.webfont.queueWaveTable(this.ac);
@@ -192,19 +205,33 @@ export class HomePage {
     });
   }
 
-  downloadError() {}
+  downloadError(error: any) {
+    alert(error);
+  }
 
   transferFile(url: string) {
     const app = this;
     const obj = this.fileTransfer.create();
-    obj.onProgress(ev => {});
+
+    let loader: HTMLIonLoadingElement;
+    const loadingComp = app.loadCtrl.create({
+      message: '0%...'
+    });
+    obj.onProgress(ev => {
+      loadingComp.then(loading => {
+        loader = loading;
+        loader.present();
+        loader.message = ((ev.loaded / ev.total) * 100).toFixed(0) + '%...';
+      });
+    });
     obj
       .download(url, this.HYMNAL_DIR + '/' + this.HYMNAL_JSON)
       .then(() => {
-        this.downloadSuccess(this.HYMNAL_DIR, this.HYMNAL_JSON);
+        loader.dismiss();
+        app.downloadSuccess(this.HYMNAL_DIR, this.HYMNAL_JSON);
       })
-      .catch(() => {
-        this.downloadError();
+      .catch(error => {
+        app.downloadError(error);
       });
   }
 }

@@ -43,13 +43,10 @@ export class AppComponent {
   }
 
   initializeApp() {
-    if (this.platform.is('cordova')) {
       this.platform.ready().then(() => {
         this.statusBar.styleDefault();
         this.splashScreen.hide();
       });
-    } else {
-    }
   }
 
   checkHymnalFile() {

@@ -11,10 +11,6 @@ export class HymnSettingService {
               private http: HttpClient) {
   }
 
-  get() {
-    this.http.get('https://akita.com').subscribe((entities) => this.hymnSettingStore.set(entities));
-  }
-
   add(hymnSetting: HymnSetting) {
     this.hymnSettingStore.add(hymnSetting);
   }
