@@ -7,6 +7,11 @@ import { HTTP } from '@ionic-native/http/ngx';
 import { Platform } from '@ionic/angular';
 
 import { environment } from '../environments/environment';
+import { HymnSettingQuery } from '@store/hymn-setting/hymn-setting.query';
+import { HymnMidiQuery } from '@store/hymn-midi/hymn-midi.query';
+import { Settings } from './model';
+import { HymnMidiStore } from '@store/hymn-midi/hymn-midi.store';
+import { HymnSettingStore } from '@store/hymn-setting/hymn-setting.store';
 
 export class API {
   ASSETS = (this.platform.is('cordova') ? this.inFile.applicationDirectory : '') + 'assets';
@@ -18,7 +23,6 @@ export class API {
     : this.platform.is('ios')
     ? this.inFile.documentsDirectory
     : this.ASSETS;
-  public soundfont = this.ASSETS + '/soundfonts/0043_GeneralUserGS_sf2_file.js';
 
   public http = this.isCordova ? this.ionicHttp : this.httpClient;
   public file = this.inFile;
@@ -30,7 +34,11 @@ export class API {
     private inFile: File,
     private platform: Platform,
     private httpClient: HttpClient,
-    private ionicHttp: HTTP
+    private ionicHttp: HTTP,
+    private hymnMidiQuery: HymnMidiQuery,
+    private hymnMidiStore: HymnMidiStore,
+    private hymnSettingQuery: HymnSettingQuery,
+    private hymnSettingStore: HymnSettingStore
   ) {}
 
   public httpCall<T>(
@@ -146,13 +154,40 @@ export class API {
   }
 
   public setSoundfont() {
-    /* WebAudioFont.instrument(this.ac, 'assets/soundfonts/acoustic_grand_piano-mp3.js').then(instru => {
-      this.soundfontStore.update({
-        soundfont: instru
-      });
-    }); */
     const player = new WebAudioFont();
-    player.loader.startLoad(new AudioContext(), this.soundfont, 'acoustic_piano');
+    player.loader.decodeAfterLoading(new AudioContext(), '_tone_0043_GeneralUserGS_sf2_file');
     return player;
+  }
+
+  public saveSettings() {
+    const settings = {
+      activeHymn: this.hymnMidiQuery.getActiveId(),
+      activeHymnSettings: this.hymnSettingQuery.getAll()
+    } as Settings;
+
+    this.file.writeFile(
+      this.storage + '/mobihymn_player_beta',
+      'settings.json',
+      JSON.stringify(settings),
+      {
+        replace: true
+      }
+    );
+  }
+
+  public getSettings() {
+    this.file.checkFile(this.storage + '/mobihymn_player_beta', 'settings.json').then(exists => {
+      if (exists) {
+        this.file.readAsText(this.storage + '/mobihymn_player_beta', 'settings.json').then(text => {
+          const settings = JSON.parse(text) as Settings;
+          if (settings.activeHymn) {
+            this.hymnMidiStore.setActive(settings.activeHymn);
+          }
+          if (settings.activeHymnSettings) {
+            this.hymnSettingStore.set(settings.activeHymnSettings);
+          }
+        });
+      }
+    });
   }
 }

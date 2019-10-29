@@ -1,61 +1,73 @@
-import * as Firebase from 'firebase';
 import * as MIDI from 'midi-player-js';
 import { LabelType, Options } from 'ng5-slider';
 import * as Webfont from 'webaudiofont';
 
-import { Component } from '@angular/core';
-import { FileTransfer } from '@ionic-native/file-transfer/ngx';
-import { Network } from '@ionic-native/network/ngx';
-import { AlertController, LoadingController } from '@ionic/angular';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { ID } from '@datorama/akita';
+import { HymnMidiQuery } from '@store/hymn-midi/hymn-midi.query';
 
-import keyJson from '../../assets/keys.json';
 import { API } from '../../services/api';
-import { HymnMidi } from '../../store/hymn-midi/hymn-midi.model';
-import { HymnMidiService } from '../../store/hymn-midi/hymn-midi.service';
-import { HymnMidiQuery } from '../../store/hymn-midi/hymn-midi.query';
-import { HymnSettingQuery } from '../../store/hymn-setting/hymn-setting.query';
-import { HymnSettingStore } from '../../store/hymn-setting/hymn-setting.store';
-import { HymnMidiStore } from '../../store/hymn-midi/hymn-midi.store.js';
+import { environment } from '@environments/environment';
+import { HymnMidi } from '@store/hymn-midi/hymn-midi.model';
+import { KeySignature } from '@services/model';
+import { HymnSetting } from '@store/hymn-setting/hymn-setting.model';
 
 @Component({ selector: 'app-home', templateUrl: 'home.page.html', styleUrls: ['home.page.scss'] })
 export class HomePage {
   tempoVal = 80;
   keyVal = 0;
-  playerVal = 70;
+  keyPos = 0;
+  playerVal = 0;
   tempoOptions: Options;
   keyOptions: Options;
   playerOptions: Options;
-  keys: any[];
-  voices: any[];
+  keys: KeySignature;
+  keyType: 'major' | 'minor';
+  voices: MIDI.Track[];
   mdiPlayer: MIDI.Player;
   webfont: any;
   ac: AudioContext;
   title = '';
+  totalTime: number;
   repeat = false;
-  isConnected = false;
 
   alert: HTMLIonAlertElement;
 
   HYMNAL_JSON = 'hymnal.json';
   HYMNAL_DIR = this.api.storage + '/mobihymn_player_beta';
 
-  constructor(
-    private network: Network,
-    private fileTransfer: FileTransfer,
-    private api: API,
-    private hymnMidiService: HymnMidiService,
-    private hymnMidiStore: HymnMidiStore,
-    private hymnMidiQuery: HymnMidiQuery,
-    private hymnSettingStore: HymnSettingStore,
-    private hymnSettingQuery: HymnSettingQuery,
-    private alertCtrl: AlertController,
-    private loadCtrl: LoadingController
-  ) {
+  curMidi: HymnMidi;
+  curSetting: HymnSetting;
+  dataUri = environment.mockData ? environment.mockData[0].midi : this.curMidi.midi;
+
+  @Input()
+  set activeMidi(val: HymnMidi) {
+    if (val) {
+      this.curMidi = val;
+      this.mdiPlayer.loadDataUri(val.midi);
+      this.tempoVal = this.mdiPlayer.tempo;
+      this.title = val.title;
+    }
+  }
+
+  @Input()
+  set activeSettings(val: HymnSetting) {
+    if (val) {
+      this.curSetting = val;
+      this.mdiPlayer.tempo = this.tempoVal = this.curSetting.tempo;
+      this.keyVal = this.curSetting.transposeBy;
+    }
+  }
+
+  @Output() addSetting = new EventEmitter<HymnSetting>();
+  @Output() updateSetting = new EventEmitter<Partial<HymnSetting>>();
+
+  constructor(private api: API, private hymnMidiQuery: HymnMidiQuery) {
     const hm = this;
     this.ac = new AudioContext();
 
     // tslint:disable-next-line:no-string-literal
-    this.keys = keyJson;
+    this.keys = environment.keys;
     this.tempoOptions = {
       floor: 60,
       ceil: 120,
@@ -64,51 +76,23 @@ export class HomePage {
       step: 1
     };
     this.keyOptions = {
-      floor: 0,
-      ceil: 11,
+      floor: -6,
+      ceil: 6,
       vertical: true,
       hidePointerLabels: true,
-      translate: (value: number, label: LabelType): string => {
-        return this.keys[value];
-      }
+      step: 1
     };
     this.playerOptions = {
       floor: 0,
       ceil: 150,
       hideLimitLabels: true,
       hidePointerLabels: true,
+      step: 1,
       translate: (value: number): string => {
         return (value / 60).toFixed(0) + ':' + (value % 60).toFixed(0);
       }
     };
 
-    this.network.onConnect().subscribe(() => {
-      this.isConnected = true;
-      if (!this.api.isSignedIn) {
-        this.api.signInToFirebaseAuth();
-      }
-      if (this.alert) {
-        this.alert.dismiss();
-      }
-    });
-
-    this.isConnected = this.network.type !== this.network.Connection.NONE;
-
-    this.checkHymnalFile();
-
-    this.hymnMidiQuery.selectActiveId().subscribe(hymnId => {
-      if (hymnId) {
-        this.hymnMidiQuery.selectEntity(hymnId).subscribe(hymnMidi => {
-          if (hymnMidi) {
-            this.mdiPlayer.loadDataUri(hymnMidi.midi);
-            this.tempoVal = this.mdiPlayer.tempo;
-            this.title = hymnMidi.title;
-          }
-        });
-      }
-    });
-
-    this.webfont = this.api.setSoundfont();
     this.setupMidiPlayer();
   }
 
@@ -116,122 +100,148 @@ export class HomePage {
     this.repeat = false;
   }
 
-  checkHymnalFile() {
-    this.api.file
-      .checkFile(this.HYMNAL_DIR, this.HYMNAL_JSON)
-      .then(exists => {
-        alert('exists: ' + exists);
-        if (!exists) {
-          if (!this.isConnected) {
-            this.alertCtrl
-              .create({
-                message:
-                  'A file is missing in your device and needs internet connection to be downloaded. Connect to the internet.',
-                backdropDismiss: false,
-                keyboardClose: false
-              })
-              .then(alert => {
-                this.alert = alert;
-                if (!this.isConnected) {
-                  this.alert.present();
-                }
-              });
-          } else {
-            if (!this.api.isSignedIn) {
-              this.api.signInToFirebaseAuth();
-            }
-          }
-        } else {
-          this.downloadSuccess(this.HYMNAL_DIR, this.HYMNAL_JSON);
-        }
-      })
-      .catch(err => {
-        alert(err);
-      });
-  }
-
   playPause() {
     this.mdiPlayer.isPlaying ? this.mdiPlayer.pause() : this.mdiPlayer.play();
   }
 
   setupMidiPlayer() {
-    this.webfont = new Webfont.WebAudioFontPlayer();
+    this.webfont = this.api.setSoundfont();
+    this.webfont.loader.decodeAfterLoading(this.ac, '');
     this.mdiPlayer = new MIDI.Player(event => {
-      console.log(Object.keys(event));
       if (event.name && event.name === 'Note on') {
+        console.log(event);
         try {
-          this.webfont.queueWaveTable(this.ac);
-          this.webfont.play(event.noteNumber, this.ac.currentTime, {
-            gain: event.velocity / 100
-          });
-        } catch (error) {}
+          console.log(this.webfont);
+          this.webfont.queueWaveTable(
+            this.ac,
+            this.ac.destination,
+            _tone_0001_FluidR3_GM_sf2_file,
+            this.ac.currentTime,
+            event.noteNumber + this.keyVal,
+            event.velocity / 100,
+            event.delta
+          );
+        } catch (error) {
+          console.log(error);
+        }
       }
     });
 
-    this.mdiPlayer.on('fileLoaded', () => {
-      console.log('LOADED');
+    this.mdiPlayer.on('playing', () => {
+      this.playerVal = this.mdiPlayer.getSongTime() - this.mdiPlayer.getSongTimeRemaining();
     });
 
-    this.mdiPlayer.on('midiEvent', event => {
-      console.log(event);
+    this.mdiPlayer.on('endOfFile', () => {
+      this.stop();
+    });
+
+    this.mdiPlayer.loadDataUri(this.dataUri);
+    this.totalTime = this.mdiPlayer.getSongTime();
+
+    this.tempoVal = this.mdiPlayer.tempo;
+
+    const keySig = this.mdiPlayer.tracks[0].events.filter(event => event.keySignature)[0]
+      .keySignature;
+    this.keyType = /Major/.test(keySig) ? 'major' : 'minor';
+    this.keyPos = this.keys[this.keyType].findIndex(key => {
+      return key.otherNames.indexOf(keySig) >= 0;
+    });
+
+    this.voices = this.mdiPlayer.tracks.slice(1, this.mdiPlayer.tracks.length);
+  }
+
+  pausePlay() {
+    if (this.mdiPlayer.isPlaying()) {
+      this.mdiPlayer.pause();
+    } else {
+      this.mdiPlayer.play();
+    }
+  }
+
+  stop() {
+    const tempVoices = this.voices.map(val => val);
+    this.mdiPlayer.stop();
+    this.playerVal = 0;
+    this.voices = this.mdiPlayer.tracks.slice(1, this.mdiPlayer.tracks.length);
+    const enables = tempVoices.map(val => val.enabled);
+    this.voices.forEach((voice, index) => {
+      voice.enabled = enables[index];
     });
   }
 
-  downloadFromFirebase() {
-    this.api.firebaseAuth.onAuthStateChanged(user => {
-      const storage = Firebase.storage().ref();
-      storage
-        .child('hymnal.json')
-        .getDownloadURL()
-        .then(url => {
-          // this.api.httpCall<string>('GET', url, this.getUrlSuccess, this.getUrlError);
-          this.transferFile(url);
-        })
-        .catch(err => {
-          alert(err);
-        });
-    });
+  toggleTrack(index) {
+    const item = this.voices.find(v => v.index === index);
+    if (item.enabled) {
+      item.disable();
+    } else {
+      item.enable();
+    }
   }
 
-  downloadSuccess(path, file) {
-    const hm = this;
-    this.api.file.readAsText(path, file).then(val => {
-      const data = JSON.parse(val) as HymnMidi[];
-      data.forEach(datum => {
-        hm.hymnMidiService.add(datum);
-        hm.hymnMidiStore.setActive(1);
-        hm.hymnSettingStore.setActive(1);
+  showKey(keyPos: number) {
+    if (this.keyType) {
+      const val = (keyPos + this.keyVal) % this.keys[this.keyType].length;
+      return (
+        this.keys[this.keyType][val < 0 ? val + 12 : val].name +
+        (this.keyVal === 0
+          ? ''
+          : this.keyVal > 0
+          ? ' (+' + this.keyVal + ')'
+          : ' (' + this.keyVal + ')')
+      );
+    } else {
+      return '';
+    }
+  }
+
+  showTime(val: number, isMilliSeconds = true) {
+    if (isMilliSeconds) {
+      const mins = this.pad(parseInt((val / 1000 / 60) * 1000 + ''), 2);
+      const secs = this.pad(parseInt(((val / 1000) % 60) * 1000 + ''), 2);
+      return mins + ':' + secs;
+    } else {
+      const mins = this.pad(parseInt(val / 60 + ''), 2);
+      const secs = this.pad(parseInt((val % 60) + ''), 2);
+      return mins + ':' + secs;
+    }
+  }
+
+  onTempoChange(event) {
+    let wasPlaying = false;
+    if (this.mdiPlayer.isPlaying()) {
+      this.mdiPlayer.pause();
+      wasPlaying = true;
+    }
+    this.mdiPlayer.tempo = event.value;
+    if (wasPlaying) {
+      this.mdiPlayer.play();
+    }
+    this.totalTime = this.mdiPlayer.getSongTime();
+
+    if (this.curSetting) {
+      this.updateSetting.emit({
+        id: this.curMidi ? this.curMidi.id : environment.mockData[0].id,
+        tempo: event.value
       });
-    });
+    } else {
+      this.addSetting.emit({
+        id: this.curMidi ? this.curMidi.id : environment.mockData[0].id,
+        tempo: event.value,
+        transposeBy: this.keyVal
+      });
+    }
   }
 
-  downloadError(error: any) {
-    alert(error);
+  onPlayerChange(event) {
+    console.log(event);
+    this.mdiPlayer.skipToSeconds(this.playerVal);
   }
 
-  transferFile(url: string) {
-    const app = this;
-    const obj = this.fileTransfer.create();
-
-    let loader: HTMLIonLoadingElement;
-    const loadingComp = app.loadCtrl.create({
-      message: '0%...'
-    });
-    obj.onProgress(ev => {
-      loadingComp.then(loading => {
-        loader = loading;
-        loader.present();
-        loader.message = ((ev.loaded / ev.total) * 100).toFixed(0) + '%...';
-      });
-    });
-    obj
-      .download(url, this.HYMNAL_DIR + '/' + this.HYMNAL_JSON)
-      .then(() => {
-        loader.dismiss();
-        app.downloadSuccess(this.HYMNAL_DIR, this.HYMNAL_JSON);
-      })
-      .catch(error => {
-        app.downloadError(error);
-      });
+  pad(num, size) {
+    let s = num + '';
+    while (s.length < size) {
+      s = '0' + s;
+    }
+    return s;
   }
 }

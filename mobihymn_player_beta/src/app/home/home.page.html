@@ -32,8 +32,8 @@
                 </ion-row>
                 <ion-row class="slider-row">
                     <ion-col class="slider-col ion-justify-content-center">
-                        <ng5-slider [(value)]="tempoVal"
-                            [options]="tempoOptions"></ng5-slider>
+                        <ng5-slider [(value)]="tempoVal" [options]="tempoOptions"
+                            (userChangeEnd)="onTempoChange($event)"></ng5-slider>
                     </ion-col>
                 </ion-row>
             </ion-col>
@@ -45,30 +45,30 @@
                 </ion-row>
                 <ion-row>
                     <ion-col class="ion-text-center">
-                        <span class="value-label">{{keys[keyVal]}}</span>
+                        <span class="value-label">{{ showKey(keyPos) }}</span>
                     </ion-col>
                 </ion-row>
                 <ion-row class="slider-row">
                     <ion-col class="slider-col ion-justify-content-center">
-                        <ng5-slider [(value)]="keyVal" [options]="keyOptions"></ng5-slider>
+                        <ng5-slider [(value)]="keyVal" [options]="keyOptions" (userChangeEnd)="onKeyChange($event)">
+                        </ng5-slider>
                     </ion-col>
                 </ion-row>
             </ion-col>
         </ion-row>
-        <ion-row class="empty-space"></ion-row>
+        <ion-row class="empty-space">
+        </ion-row>
         <!--BUTTONS-->
         <ion-row class="voice-groups-container">
-            <ion-col class="ion-text-left" offset="1">
+            <ion-col class="ion-text-center">
                 <span>VOICE GROUPS</span>
             </ion-col>
         </ion-row>
         <ion-row>
-            <ion-col *ngFor="let voice of voices; index as i"
-                class="ion-no-padding" size="2"
-                [attr.offset]="i == 0 ? 3 : null">
-                <ion-button color="warning" expand="full" style="text-transform:
-                    uppercase;">
-                    Gr. {{ i + 1}}
+            <ion-col *ngFor="let voice of voices" class="ion-no-padding">
+                <ion-button color="warning" [fill]="voice.enabled ? 'solid' : 'outline'" style="text-transform:
+                    uppercase; width: 93%" (click)="toggleTrack(voice.index)">
+                    Gr. {{ voice.index }}
                 </ion-button>
             </ion-col>
         </ion-row>
@@ -78,17 +78,16 @@
             <ion-col size="2" class="ion-align-items-center
                 ion-justify-content-end" style="display: flex;">
                 <p class="ion-no-margin">
-                    {{ (playerVal / 60).toFixed(0) + ':' + (playerVal %
-                    60).toFixed(0) }}
+                    {{ showTime(playerVal, false) }}
                 </p>
             </ion-col>
             <ion-col size="8">
-                <ng5-slider [(value)]="playerVal" [options]="playerOptions"
-                    class="player-slider"></ng5-slider>
+                <ng5-slider [(value)]="playerVal" [options]="playerOptions" class="player-slider"
+                    (userChangeEnd)="onPlayerChange($event)"></ng5-slider>
             </ion-col>
             <ion-col size="2" class="ion-align-items-center
                 ion-justify-content-start" style="display: flex;">
-                <p class="ion-no-margin">3:30</p>
+                <p class="ion-no-margin">{{ showTime(totalTime, false) }}</p>
             </ion-col>
         </ion-row>
         <!--PLAYER CONTROLS-->
@@ -96,7 +95,7 @@
             <ion-col size="2" offset="2" class="ion-text-center
                 ion-justify-content-center">
                 <ion-fab>
-                    <ion-fab-button size="small" [disabled]="!mdiPlayer">
+                    <ion-fab-button size="small" [disabled]="!mdiPlayer" (click)="stop()">
                         <ion-icon name="square"></ion-icon>
                     </ion-fab-button>
                 </ion-fab>
@@ -104,8 +103,8 @@
             <ion-col size="4" class="ion-text-center
                 ion-justify-content-center">
                 <ion-fab>
-                    <ion-fab-button [disabled]="!mdiPlayer">
-                        <ion-icon [name]="mdiPlayer && mdiPlayer.isPlaying ?
+                    <ion-fab-button [disabled]="!mdiPlayer" (click)="pausePlay()">
+                        <ion-icon [name]="mdiPlayer && mdiPlayer.isPlaying() ?
                             'pause' : 'play'"></ion-icon>
                     </ion-fab-button>
                 </ion-fab>
@@ -113,8 +112,7 @@
             <ion-col size="2" class="ion-text-center
                 ion-justify-content-center">
                 <ion-fab>
-                    <ion-fab-button size="small" [disabled]="!mdiPlayer"
-                        [ngClass]="{'fill': repeat}" class="repeater">
+                    <ion-fab-button size="small" [disabled]="!mdiPlayer" [ngClass]="{'fill': repeat}" class="repeater">
                         <ion-icon name="repeat"></ion-icon>
                     </ion-fab-button>
                 </ion-fab>

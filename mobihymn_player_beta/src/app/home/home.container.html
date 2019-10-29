@@ -1,0 +1,4 @@
+<div class="container">
+    <app-home [activeMidi]="activeMidi$ | async" [activeSettings]="activeSetting$ | async"
+        (addSetting)="addSetting($event)" (updateSetting)="updateSetting($event)"></app-home>
+</div>

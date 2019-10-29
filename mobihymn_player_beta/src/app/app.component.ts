@@ -3,7 +3,7 @@ import { API } from 'src/services/api';
 import { HymnMidi } from 'src/store/hymn-midi/hymn-midi.model';
 import { HymnMidiService } from 'src/store/hymn-midi/hymn-midi.service';
 
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { SplashScreen } from '@ionic-native/splash-screen/ngx';
 import { StatusBar } from '@ionic-native/status-bar/ngx';
 import { Platform } from '@ionic/angular';
@@ -43,10 +43,13 @@ export class AppComponent {
   }
 
   initializeApp() {
+    if (this.api.isCordova) {
       this.platform.ready().then(() => {
         this.statusBar.styleDefault();
         this.splashScreen.hide();
+        this.api.getSettings();
       });
+    }
   }
 
   checkHymnalFile() {
@@ -107,10 +110,17 @@ export class AppComponent {
     obj
       .download(url, this.HYMNAL_DIR + '/' + this.HYMNAL_JSON)
       .then(() => {
-        this.downloadSuccess(this.HYMNAL_DIR, this.HYMNAL_JSON);
+        app.downloadSuccess(this.HYMNAL_DIR, this.HYMNAL_JSON);
       })
       .catch(() => {
-        this.downloadError();
+        app.downloadError();
       });
+  }
+
+  @HostListener('window:beforeunload')
+  onBeforeUnload() {
+    if (this.platform.is('cordova')) {
+      this.api.saveSettings();
+    }
   }
 }
