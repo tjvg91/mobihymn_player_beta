@@ -4,7 +4,7 @@
             <ion-menu-button></ion-menu-button>
         </ion-buttons>
         <ion-title>
-            {{ title }}
+            MIDI #{{ title }}
         </ion-title>
         <ion-buttons slot="end">
             <ion-button routerLink="/list">
@@ -103,7 +103,7 @@
             <ion-col size="4" class="ion-text-center
                 ion-justify-content-center">
                 <ion-fab>
-                    <ion-fab-button [disabled]="!mdiPlayer" (click)="pausePlay()">
+                    <ion-fab-button [disabled]="!mdiPlayer" (click)="pausePlay()" class="player-button">
                         <ion-icon [name]="mdiPlayer && mdiPlayer.isPlaying() ?
                             'pause' : 'play'"></ion-icon>
                     </ion-fab-button>
@@ -112,7 +112,8 @@
             <ion-col size="2" class="ion-text-center
                 ion-justify-content-center">
                 <ion-fab>
-                    <ion-fab-button size="small" [disabled]="!mdiPlayer" [ngClass]="{'fill': repeat}" class="repeater">
+                    <ion-fab-button size="small" [disabled]="!mdiPlayer" [ngClass]="{'fill': repeat}" class="repeater"
+                        (click)="toggleRepeat()">
                         <ion-icon name="repeat"></ion-icon>
                     </ion-fab-button>
                 </ion-fab>

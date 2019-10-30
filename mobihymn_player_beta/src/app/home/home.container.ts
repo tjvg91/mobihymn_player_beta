@@ -1,23 +1,23 @@
-import * as Firebase from "firebase";
+import * as Firebase from 'firebase';
 
-import { Component } from "@angular/core";
-import { FileTransfer } from "@ionic-native/file-transfer/ngx";
-import { Network } from "@ionic-native/network/ngx";
-import { AlertController, LoadingController } from "@ionic/angular";
-import { HymnMidi } from "@store/hymn-midi/hymn-midi.model";
-import { HymnMidiQuery } from "@store/hymn-midi/hymn-midi.query";
-import { HymnMidiService } from "@store/hymn-midi/hymn-midi.service";
-import { HymnMidiStore } from "@store/hymn-midi/hymn-midi.store.js";
-import { HymnSettingQuery } from "@store/hymn-setting/hymn-setting.query";
-import { HymnSettingStore } from "@store/hymn-setting/hymn-setting.store";
+import { Component } from '@angular/core';
+import { FileTransfer } from '@ionic-native/file-transfer/ngx';
+import { Network } from '@ionic-native/network/ngx';
+import { AlertController, LoadingController } from '@ionic/angular';
+import { HymnMidi } from '@store/hymn-midi/hymn-midi.model';
+import { HymnMidiQuery } from '@store/hymn-midi/hymn-midi.query';
+import { HymnMidiService } from '@store/hymn-midi/hymn-midi.service';
+import { HymnMidiStore } from '@store/hymn-midi/hymn-midi.store.js';
+import { HymnSettingQuery } from '@store/hymn-setting/hymn-setting.query';
+import { HymnSettingStore } from '@store/hymn-setting/hymn-setting.store';
 
-import { API } from "../../services/api";
-import { HymnSetting } from "@store/hymn-setting/hymn-setting.model";
+import { API } from '../../services/api';
+import { HymnSetting } from '@store/hymn-setting/hymn-setting.model';
 
 @Component({
-  selector: "app-home-container",
-  templateUrl: "home.container.html",
-  styleUrls: ["home.container.scss"]
+  selector: 'app-home-container',
+  templateUrl: 'home.container.html',
+  styleUrls: ['home.container.scss']
 })
 export class HomeContPage {
   activeMidi$ = this.hymnMidiQuery.selectActive();
@@ -27,8 +27,8 @@ export class HomeContPage {
 
   alert: HTMLIonAlertElement;
 
-  HYMNAL_JSON = "hymnal.json";
-  HYMNAL_DIR = this.api.storage + "/mobihymn_player_beta";
+  HYMNAL_JSON = 'hymnal.json';
+  HYMNAL_DIR = this.api.storage + '/mobihymn_player_beta';
 
   constructor(
     private network: Network,
@@ -64,13 +64,13 @@ export class HomeContPage {
     this.api.file
       .checkFile(this.HYMNAL_DIR, this.HYMNAL_JSON)
       .then(exists => {
-        alert("exists: " + exists);
+        alert('exists: ' + exists);
         if (!exists) {
           if (!this.isConnected) {
             this.alertCtrl
               .create({
                 message:
-                  "A file is missing in your device and needs internet connection to be downloaded. Connect to the internet.",
+                  'A file is missing in your device and needs internet connection to be downloaded. Connect to the internet.',
                 backdropDismiss: false,
                 keyboardClose: false
               })
@@ -98,7 +98,7 @@ export class HomeContPage {
     this.api.firebaseAuth.onAuthStateChanged(user => {
       const storage = Firebase.storage().ref();
       storage
-        .child("hymnal.json")
+        .child('hymnal.json')
         .getDownloadURL()
         .then(url => {
           // this.api.httpCall<string>('GET', url, this.getUrlSuccess, this.getUrlError);
@@ -133,7 +133,7 @@ export class HomeContPage {
     let loader: HTMLIonLoadingElement;
     let loaderShowing = false;
     const loadingComp = app.loadCtrl.create({
-      message: "Downloading 0%..."
+      message: 'Downloading 0%...'
     });
     obj.onProgress(ev => {
       loadingComp.then(loading => {
@@ -142,11 +142,11 @@ export class HomeContPage {
           loader.present();
           loaderShowing = true;
         }
-        loader.message = "Downloading " + ((ev.loaded / ev.total) * 100).toFixed(0) + "%...";
+        loader.message = 'Downloading ' + ((ev.loaded / ev.total) * 100).toFixed(0) + '%...';
       });
     });
     obj
-      .download(url, this.HYMNAL_DIR + "/" + this.HYMNAL_JSON)
+      .download(url, this.HYMNAL_DIR + '/' + this.HYMNAL_JSON)
       .then(() => {
         loader.dismiss();
         app.downloadSuccess(this.HYMNAL_DIR, this.HYMNAL_JSON);

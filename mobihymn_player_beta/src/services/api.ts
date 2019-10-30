@@ -153,7 +153,7 @@ export class API {
     this.firebaseAuth = auth;
   }
 
-  public setSoundfont() {
+  public getSoundfont() {
     const player = new WebAudioFont();
     player.loader.decodeAfterLoading(new AudioContext(), '_tone_0043_GeneralUserGS_sf2_file');
     return player;

@@ -1,12 +1,9 @@
 import * as MIDI from 'midi-player-js';
 import { LabelType, Options } from 'ng5-slider';
-import * as Webfont from 'webaudiofont';
 
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { ID } from '@datorama/akita';
-import { HymnMidiQuery } from '@store/hymn-midi/hymn-midi.query';
 
-import { API } from '../../services/api';
+import { API } from '@services/api';
 import { environment } from '@environments/environment';
 import { HymnMidi } from '@store/hymn-midi/hymn-midi.model';
 import { KeySignature } from '@services/model';
@@ -62,7 +59,7 @@ export class HomePage {
   @Output() addSetting = new EventEmitter<HymnSetting>();
   @Output() updateSetting = new EventEmitter<Partial<HymnSetting>>();
 
-  constructor(private api: API, private hymnMidiQuery: HymnMidiQuery) {
+  constructor(private api: API) {
     const hm = this;
     this.ac = new AudioContext();
 
@@ -93,6 +90,7 @@ export class HomePage {
       }
     };
 
+    this.title = environment.mockData ? environment.mockData[0].title : '';
     this.setupMidiPlayer();
   }
 
@@ -105,21 +103,18 @@ export class HomePage {
   }
 
   setupMidiPlayer() {
-    this.webfont = this.api.setSoundfont();
+    this.webfont = this.api.getSoundfont();
     this.webfont.loader.decodeAfterLoading(this.ac, '');
     this.mdiPlayer = new MIDI.Player(event => {
       if (event.name && event.name === 'Note on') {
-        console.log(event);
         try {
-          console.log(this.webfont);
           this.webfont.queueWaveTable(
             this.ac,
             this.ac.destination,
-            _tone_0001_FluidR3_GM_sf2_file,
+            window['soundfont'],
             this.ac.currentTime,
             event.noteNumber + this.keyVal,
-            event.velocity / 100,
-            event.delta
+            event.velocity / 100
           );
         } catch (error) {
           console.log(error);
@@ -132,7 +127,12 @@ export class HomePage {
     });
 
     this.mdiPlayer.on('endOfFile', () => {
-      this.stop();
+      if (this.repeat) {
+        this.playerVal = 0;
+        this.mdiPlayer['skipToSeconds'](this.playerVal);
+      } else {
+        this.stop();
+      }
     });
 
     this.mdiPlayer.loadDataUri(this.dataUri);
@@ -140,14 +140,16 @@ export class HomePage {
 
     this.tempoVal = this.mdiPlayer.tempo;
 
-    const keySig = this.mdiPlayer.tracks[0].events.filter(event => event.keySignature)[0]
-      .keySignature;
+    const keySig = this.mdiPlayer.tracks[0].events.filter(event => event['keySignature'])[0][
+      'keySignature'
+    ];
     this.keyType = /Major/.test(keySig) ? 'major' : 'minor';
     this.keyPos = this.keys[this.keyType].findIndex(key => {
       return key.otherNames.indexOf(keySig) >= 0;
     });
 
     this.voices = this.mdiPlayer.tracks.slice(1, this.mdiPlayer.tracks.length);
+    console.log(this.webfont.queueWaveTable);
   }
 
   pausePlay() {
@@ -163,15 +165,15 @@ export class HomePage {
     this.mdiPlayer.stop();
     this.playerVal = 0;
     this.voices = this.mdiPlayer.tracks.slice(1, this.mdiPlayer.tracks.length);
-    const enables = tempVoices.map(val => val.enabled);
+    const enables = tempVoices.map(val => val['enabled']);
     this.voices.forEach((voice, index) => {
-      voice.enabled = enables[index];
+      voice['enabled'] = enables[index];
     });
   }
 
   toggleTrack(index) {
-    const item = this.voices.find(v => v.index === index);
-    if (item.enabled) {
+    const item = this.voices.find(v => v['index'] === index);
+    if (item['enabled']) {
       item.disable();
     } else {
       item.enable();
@@ -232,9 +234,13 @@ export class HomePage {
     }
   }
 
+  toggleRepeat() {
+    this.repeat = !this.repeat;
+  }
+
   onPlayerChange(event) {
     console.log(event);
-    this.mdiPlayer.skipToSeconds(this.playerVal);
+    this.mdiPlayer['skipToSeconds'](this.playerVal);
   }
 
   pad(num, size) {

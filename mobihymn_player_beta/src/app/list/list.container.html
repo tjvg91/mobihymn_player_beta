@@ -1,0 +1,4 @@
+<div class="container">
+    <app-list [hymnMidiList]="hymnMidiList$ | async" (setActiveHymn)="setActiveHymn($event)"
+        (routeToHome)="routeToHome()"></app-list>
+</div>

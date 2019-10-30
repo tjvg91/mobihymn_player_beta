@@ -1,10 +1,9 @@
-import { Component } from '@angular/core';
-import MIDIButtons from '../../assets/midi-buttons.json';
-import { Router } from '@angular/router';
-import { HymnMidiQuery } from '../../store/hymn-midi/hymn-midi.query';
-import { HymnMidi } from '../../store/hymn-midi/hymn-midi.model';
-import { HymnMidiStore } from '../../store/hymn-midi/hymn-midi.store';
-import { map } from 'rxjs/operators';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ID } from '@datorama/akita';
+
+import MIDIButtons from '@assets/midi-buttons.json';
+import { HymnMidi } from '@store/hymn-midi/hymn-midi.model';
+import { ToastController } from '@ionic/angular';
 
 @Component({
   selector: 'app-list',
@@ -15,12 +14,17 @@ export class ListPage {
   buttons = MIDIButtons;
   inputReset = true;
   midiVal = '1';
+  midiList: HymnMidi[];
 
-  constructor(
-    private router: Router,
-    private hymnMidiQuery: HymnMidiQuery,
-    private hymnMidiStore: HymnMidiStore
-  ) {}
+  @Input()
+  set hymnMidiList(val: HymnMidi[]) {
+    this.midiList = val;
+  }
+
+  @Output() setActiveHymn = new EventEmitter<ID>();
+  @Output() routeToHome = new EventEmitter<void>();
+
+  constructor(private toastCtrl: ToastController) {}
 
   ionViewDidEnter() {
     const routerOutlet = document.querySelector('ion-router-outlet');
@@ -31,7 +35,7 @@ export class ListPage {
       .setAttribute('style', 'display:flex; justify-content: center; flex-direction: column');
   }
 
-  buttonClick(btnVal: string | number) {
+  async buttonClick(btnVal: string | number) {
     if (!(/[fst]$/.test(this.midiVal) && /f|s|t/.test(btnVal + ''))) {
       if (this.inputReset) {
         if (/\d/.test(btnVal + '')) {
@@ -54,14 +58,18 @@ export class ListPage {
               }
               break;
             case '>':
-              this.hymnMidiQuery
-                .selectEntity((midi: HymnMidi) => midi.number === this.midiVal)
-                .pipe(
-                  map(midi => {
-                    this.hymnMidiStore.setActive(midi.id);
-                    this.router.navigate(['/home']);
-                  })
-                );
+              const found = this.midiList.find(midi => midi.number === this.midiVal);
+              if (found) {
+                this.setActiveHymn.emit(parseInt(this.midiVal));
+                this.routeToHome.emit();
+              } else {
+                const toast = await this.toastCtrl.create({
+                  duration: 3000,
+                  message: 'MIDI not found.'
+                });
+                toast.present();
+              }
+              this.inputReset = true;
               break;
             default:
               break;

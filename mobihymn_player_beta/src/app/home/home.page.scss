@@ -66,6 +66,10 @@ ion-grid {
         display: flex;
     }
 
+    .player-button {
+        font-size: 18px;
+    }
+
     ion-fab-button {
         &:not(.fill) {
             --background: none;
