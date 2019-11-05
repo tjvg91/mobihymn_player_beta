@@ -2,7 +2,7 @@ import * as Firebase from 'firebase';
 import * as WebAudioFont from 'webaudiofont';
 
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { File } from '@ionic-native/file/ngx';
+import { File, FileError } from '@ionic-native/file/ngx';
 import { HTTP } from '@ionic-native/http/ngx';
 import { Platform } from '@ionic/angular';
 
@@ -21,8 +21,8 @@ export class API {
   public storage = this.platform.is('android')
     ? this.inFile.externalDataDirectory
     : this.platform.is('ios')
-    ? this.inFile.documentsDirectory
-    : this.ASSETS;
+      ? this.inFile.documentsDirectory
+      : this.ASSETS;
 
   public http = this.isCordova ? this.ionicHttp : this.httpClient;
   public file = this.inFile;
@@ -39,7 +39,7 @@ export class API {
     private hymnMidiStore: HymnMidiStore,
     private hymnSettingQuery: HymnSettingQuery,
     private hymnSettingStore: HymnSettingStore
-  ) {}
+  ) { }
 
   public httpCall<T>(
     method: 'GET' | 'POST' | 'DELETE' | 'PUT' | 'PATCH',
@@ -175,19 +175,20 @@ export class API {
     );
   }
 
-  public getSettings() {
-    this.file.checkFile(this.storage + '/mobihymn_player_beta', 'settings.json').then(exists => {
-      if (exists) {
-        this.file.readAsText(this.storage + '/mobihymn_player_beta', 'settings.json').then(text => {
-          const settings = JSON.parse(text) as Settings;
-          if (settings.activeHymn) {
-            this.hymnMidiStore.setActive(settings.activeHymn);
-          }
-          if (settings.activeHymnSettings) {
-            this.hymnSettingStore.set(settings.activeHymnSettings);
-          }
+  getSettings() {
+    this.file.readAsText(this.storage + '/mobihymn_player_beta', 'settings.json')
+      .then(text => {
+        const settings = JSON.parse(text) as Settings;
+        if (settings.activeHymn) {
+          this.hymnMidiStore.setActive(settings.activeHymn);
+        }
+        if (settings.activeHymnSettings) {
+          this.hymnSettingStore.set(settings.activeHymnSettings);
+        }
+      }).catch(err => {
+        Object.keys(err).forEach(key => {
+          alert('getSettings readAsText ' + key + ': ' + err[key]);
         });
-      }
-    });
+      });
   }
 }

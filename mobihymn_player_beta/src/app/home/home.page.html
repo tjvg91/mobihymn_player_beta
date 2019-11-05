@@ -32,8 +32,7 @@
                 </ion-row>
                 <ion-row class="slider-row">
                     <ion-col class="slider-col ion-justify-content-center">
-                        <ng5-slider [(value)]="tempoVal" [options]="tempoOptions"
-                            (userChangeEnd)="onTempoChange($event)"></ng5-slider>
+                        <ng5-slider [(value)]="tempoVal" [options]="tempoOptions" (userChangeEnd)="onTempoChange($event)"></ng5-slider>
                     </ion-col>
                 </ion-row>
             </ion-col>
@@ -50,7 +49,7 @@
                 </ion-row>
                 <ion-row class="slider-row">
                     <ion-col class="slider-col ion-justify-content-center">
-                        <ng5-slider [(value)]="keyVal" [options]="keyOptions" (userChangeEnd)="onKeyChange($event)">
+                        <ng5-slider [(value)]="keyVal" [options]="keyOptions">
                         </ng5-slider>
                     </ion-col>
                 </ion-row>
@@ -82,8 +81,7 @@
                 </p>
             </ion-col>
             <ion-col size="8">
-                <ng5-slider [(value)]="playerVal" [options]="playerOptions" class="player-slider"
-                    (userChangeEnd)="onPlayerChange($event)"></ng5-slider>
+                <ng5-slider [(value)]="playerVal" [options]="playerOptions" class="player-slider" (userChangeEnd)="onPlayerChange($event)"></ng5-slider>
             </ion-col>
             <ion-col size="2" class="ion-align-items-center
                 ion-justify-content-start" style="display: flex;">
@@ -112,8 +110,7 @@
             <ion-col size="2" class="ion-text-center
                 ion-justify-content-center">
                 <ion-fab>
-                    <ion-fab-button size="small" [disabled]="!mdiPlayer" [ngClass]="{'fill': repeat}" class="repeater"
-                        (click)="toggleRepeat()">
+                    <ion-fab-button size="small" [disabled]="!mdiPlayer" [ngClass]="{'fill': repeat}" class="repeater" (click)="toggleRepeat()">
                         <ion-icon name="repeat"></ion-icon>
                     </ion-fab-button>
                 </ion-fab>

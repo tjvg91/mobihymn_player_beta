@@ -3,6 +3,7 @@ import * as Firebase from 'firebase';
 import { Component } from '@angular/core';
 import { FileTransfer } from '@ionic-native/file-transfer/ngx';
 import { Network } from '@ionic-native/network/ngx';
+import { ScreenOrientation } from '@ionic-native/screen-orientation/ngx';
 import { AlertController, LoadingController } from '@ionic/angular';
 import { HymnMidi } from '@store/hymn-midi/hymn-midi.model';
 import { HymnMidiQuery } from '@store/hymn-midi/hymn-midi.query';
@@ -13,6 +14,9 @@ import { HymnSettingStore } from '@store/hymn-setting/hymn-setting.store';
 
 import { API } from '../../services/api';
 import { HymnSetting } from '@store/hymn-setting/hymn-setting.model';
+import { HymnSettingService } from '@store/hymn-setting/hymn-setting.service';
+
+
 
 @Component({
   selector: 'app-home-container',
@@ -33,12 +37,14 @@ export class HomeContPage {
   constructor(
     private network: Network,
     private fileTransfer: FileTransfer,
+    private screenOrientation: ScreenOrientation,
     private api: API,
     private hymnMidiService: HymnMidiService,
     private hymnMidiStore: HymnMidiStore,
     private hymnMidiQuery: HymnMidiQuery,
     private hymnSettingStore: HymnSettingStore,
     private hymnSettingQuery: HymnSettingQuery,
+    private hymnSettingService: HymnSettingService,
     private alertCtrl: AlertController,
     private loadCtrl: LoadingController
   ) {
@@ -56,7 +62,9 @@ export class HomeContPage {
     this.isConnected = this.network.type !== this.network.Connection.NONE;
 
     if (this.api.isCordova) {
+      this.screenOrientation.lock(this.screenOrientation.ORIENTATIONS.PORTRAIT);
       this.checkHymnalFile();
+      this.api.getSettings();
     }
   }
 
@@ -111,6 +119,7 @@ export class HomeContPage {
   }
 
   downloadSuccess(path, file) {
+    alert('download success');
     const hm = this;
     this.api.file.readAsText(path, file).then(val => {
       const data = JSON.parse(val) as HymnMidi[];
@@ -161,6 +170,6 @@ export class HomeContPage {
   }
 
   updateSetting(val: Partial<HymnSetting>) {
-    this.hymnMidiService.update(val.id, val);
+    this.hymnSettingService.update(val.id, val);
   }
 }

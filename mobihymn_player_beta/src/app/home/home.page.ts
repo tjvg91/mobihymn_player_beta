@@ -35,15 +35,20 @@ export class HomePage {
 
   curMidi: HymnMidi;
   curSetting: HymnSetting;
-  dataUri = environment.mockData ? environment.mockData[0].midi : this.curMidi.midi;
+  dataUri: string;
 
   @Input()
   set activeMidi(val: HymnMidi) {
     if (val) {
       this.curMidi = val;
-      this.mdiPlayer.loadDataUri(val.midi);
       this.tempoVal = this.mdiPlayer.tempo;
       this.title = val.title;
+      this.dataUri = this.curMidi.midi;
+      if (!this.mdiPlayer) {
+        this.setupMidiPlayer();
+      }
+      this.modifyPlayer();
+
     }
   }
 
@@ -51,8 +56,13 @@ export class HomePage {
   set activeSettings(val: HymnSetting) {
     if (val) {
       this.curSetting = val;
-      this.mdiPlayer.tempo = this.tempoVal = this.curSetting.tempo;
+      this.tempoVal = this.curSetting.tempo;
       this.keyVal = this.curSetting.transposeBy;
+      if (!this.mdiPlayer) {
+        this.setupMidiPlayer();
+      }
+      this.modifyPlayer();
+
     }
   }
 
@@ -90,11 +100,11 @@ export class HomePage {
       }
     };
 
-    this.title = environment.mockData ? environment.mockData[0].title : '';
     this.setupMidiPlayer();
   }
 
   ionViewDidEnter() {
+    alert('sulud home page');
     this.repeat = false;
   }
 
@@ -114,7 +124,7 @@ export class HomePage {
             window['soundfont'],
             this.ac.currentTime,
             event.noteNumber + this.keyVal,
-            event.velocity / 100
+            (60000 / (event.tick * this.tempoVal)) * 1000
           );
         } catch (error) {
           console.log(error);
@@ -134,11 +144,18 @@ export class HomePage {
         this.stop();
       }
     });
+  }
 
+  modifyPlayer() {
     this.mdiPlayer.loadDataUri(this.dataUri);
     this.totalTime = this.mdiPlayer.getSongTime();
 
-    this.tempoVal = this.mdiPlayer.tempo;
+    if (this.curSetting) {
+      this.tempoVal = this.curSetting.tempo;
+      this.mdiPlayer.tempo = this.curSetting.tempo;
+    } else {
+      this.tempoVal = this.mdiPlayer.tempo;
+    }
 
     const keySig = this.mdiPlayer.tracks[0].events.filter(event => event['keySignature'])[0][
       'keySignature'
@@ -188,8 +205,8 @@ export class HomePage {
         (this.keyVal === 0
           ? ''
           : this.keyVal > 0
-          ? ' (+' + this.keyVal + ')'
-          : ' (' + this.keyVal + ')')
+            ? ' (+' + this.keyVal + ')'
+            : ' (' + this.keyVal + ')')
       );
     } else {
       return '';
@@ -222,16 +239,17 @@ export class HomePage {
 
     if (this.curSetting) {
       this.updateSetting.emit({
-        id: this.curMidi ? this.curMidi.id : environment.mockData[0].id,
+        id: this.curMidi.id,
         tempo: event.value
       });
     } else {
       this.addSetting.emit({
-        id: this.curMidi ? this.curMidi.id : environment.mockData[0].id,
+        id: this.curMidi.id,
         tempo: event.value,
         transposeBy: this.keyVal
       });
     }
+    this.tempoVal = event.value;
   }
 
   toggleRepeat() {

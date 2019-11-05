@@ -1,7 +1,7 @@
 import * as Firebase from 'firebase';
-import { API } from 'src/services/api';
-import { HymnMidi } from 'src/store/hymn-midi/hymn-midi.model';
-import { HymnMidiService } from 'src/store/hymn-midi/hymn-midi.service';
+import { API } from '@services/api';
+import { HymnMidi } from '@store/hymn-midi/hymn-midi.model';
+import { HymnMidiService } from '@store/hymn-midi/hymn-midi.service';
 
 import { Component, HostListener } from '@angular/core';
 import { SplashScreen } from '@ionic-native/splash-screen/ngx';
@@ -46,8 +46,11 @@ export class AppComponent {
     if (this.api.isCordova) {
       this.platform.ready().then(() => {
         this.statusBar.styleDefault();
+        this.statusBar.hide();
         this.splashScreen.hide();
-        this.api.getSettings();
+      });
+      this.platform.pause.subscribe(() => {
+        this.api.saveSettings();
       });
     }
   }
@@ -56,12 +59,17 @@ export class AppComponent {
     this.api.file
       .checkFile(this.HYMNAL_DIR, this.HYMNAL_JSON)
       .then(exists => {
+        alert('app component exists: ' + exists);
         if (!exists) {
           this.downloadFromFirebase();
+        } else {
+          this.downloadSuccess(this.HYMNAL_DIR, this.HYMNAL_JSON);
         }
       })
-      .catch(err => {
-        alert(err);
+      .catch((err) => {
+        if (err['message'] === 'NOT_FOUND_ERR') {
+          this.downloadSuccess(this.HYMNAL_DIR, this.HYMNAL_JSON);
+        }
       });
   }
 
@@ -93,20 +101,24 @@ export class AppComponent {
   }
 
   downloadSuccess(path, file) {
-    this.api.file.readAsText(path, file).then(val => {
-      const data = JSON.parse(val) as HymnMidi[];
+    this.api.file.readAsText(path, file).then(text => {
+      const data = JSON.parse(text) as HymnMidi[];
       data.forEach(datum => {
         this.hymnMidiService.add(datum);
+      });
+    }).catch(err => {
+      Object.keys(err).forEach(key => {
+        alert(key + ': ' + err[key]);
       });
     });
   }
 
-  downloadError() {}
+  downloadError() { }
 
   transferFile(url: string) {
     const app = this;
     const obj = this.fileTransfer.create();
-    obj.onProgress(ev => {});
+    obj.onProgress(ev => { });
     obj
       .download(url, this.HYMNAL_DIR + '/' + this.HYMNAL_JSON)
       .then(() => {
@@ -119,7 +131,7 @@ export class AppComponent {
 
   @HostListener('window:beforeunload')
   onBeforeUnload() {
-    if (this.platform.is('cordova')) {
+    if (!this.platform.is('cordova')) {
       this.api.saveSettings();
     }
   }
